@@ -11,6 +11,11 @@ jobs:
   verify-startup:
     runs-on: ubuntu-latest
     
+    env:
+      FHIR_PORT: 8080
+      DB_USER: admin
+      DB_NAME: hapi
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -25,7 +30,7 @@ jobs:
         attempt=0
         
         while [ $attempt -lt $max_attempts ]; do
-          if curl -sf http://localhost:8080/fhir/metadata > /dev/null 2>&1; then
+          if curl -sf http://localhost:${{ env.FHIR_PORT }}/fhir/metadata > /dev/null 2>&1; then
             echo "FHIR server is ready!"
             exit 0
           fi
@@ -42,7 +47,7 @@ jobs:
     - name: Verify FHIR metadata endpoint
       run: |
         echo "Testing FHIR metadata endpoint..."
-        response=$(curl -s http://localhost:8080/fhir/metadata)
+        response=$(curl -s http://localhost:${{ env.FHIR_PORT }}/fhir/metadata)
         
         if echo "$response" | grep -q "CapabilityStatement"; then
           echo "✓ FHIR server is responding correctly"
@@ -58,7 +63,7 @@ jobs:
     - name: Check database connection
       run: |
         echo "Checking database container..."
-        docker compose exec -T db pg_isready -U admin -d hapi
+        docker compose exec -T db pg_isready -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }}
         
     - name: Show service status
       if: always()
