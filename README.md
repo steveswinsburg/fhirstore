@@ -1,5 +1,5 @@
-# 🔥 FHIR Store
-> A containerized HAPI FHIR server
+# 🔥 Ember Core - FHIR Server
+> A containerized HAPI FHIR server with PostgreSQL
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 [![HAPI FHIR](https://img.shields.io/badge/HAPI%20FHIR-Latest-green?logo=fire)](https://hapifhir.io/)
@@ -11,12 +11,12 @@ Get your FHIR server running in seconds:
 
 ```bash
 # Clone and start
-git clone <your-repo>
-cd fhirstore
-docker-compose up -d
+git clone https://github.com/steveswinsburg/ember-core.git
+cd ember-core
+docker compose up -d
 
 # Check status
-docker-compose ps
+docker compose ps
 ```
 
 **🎉 That's it!** Your FHIR server is now running at `http://localhost:8080`
@@ -40,63 +40,59 @@ docker-compose ps
          │              ┌─────────────────┐
          └─────────────▶│  Custom Schema  │
                         │   fhir_data     │
-                        │   fhir_app user │
+                        │   fhir_app_user │
                         └─────────────────┘
 ```
 
 ## 🛠️ Configuration
 
 ### Database Setup
-- **User**: `fhir_app` (application user)
+- **User**: `fhir_app_user` (application user)
 - **Schema**: `fhir_data` (dedicated FHIR schema)
 - **Admin**: `admin` (database administration)
 
-The user and schema is initialised on startup.
+The user and schema are initialized on startup.
 
 ### FHIR Configuration
 Custom application settings in `hapi.application.yaml`:
 - PostgreSQL dialect optimized for HAPI
 - Hibernate search disabled for performance
 - Connection pooling ready
-=
 
 ## 🔧 Commands
 
 ### Development
 ```bash
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
-
-# Scale FHIR instances
-docker-compose up --scale fhir=3
+docker compose logs -f
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 ### Database Access
 ```bash
 # Connect to PostgreSQL
-docker-compose exec db psql -U admin -d hapi
+docker compose exec db psql -U admin -d hapi
 
 # Check FHIR schema
-docker-compose exec db psql -U fhir_app -d hapi -c "\dt fhir_data.*"
+docker compose exec db psql -U fhir_app_user -d hapi -c "\dt fhir_data.*"
 ```
 
 ### Troubleshooting
 ```bash
 # Check container status
-docker-compose ps
+docker compose ps
 
 # Restart specific service
-docker-compose restart fhir
+docker compose restart fhir
 
 # Fresh start (removes data)
-docker-compose down -v
-docker-compose up -d
+docker compose down -v
+docker compose up -d
 ```
 
 ## 🌐 API Examples
@@ -141,8 +137,8 @@ curl "http://localhost:8080/fhir/Patient?family=Doe"
 
 ### Horizontal Scaling
 ```bash
-# Multiple FHIR instances (ports 8080-8082)
-docker-compose up --scale fhir=3
+# Multiple FHIR instances
+docker compose up --scale fhir=3
 ```
 
 ## 🤝 Contributing
