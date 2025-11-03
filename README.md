@@ -1,4 +1,4 @@
-# 🔥 Ember Core - FHIR Server
+# 🔥 FHIRStore - FHIR Server
 > A containerized HAPI FHIR server with PostgreSQL
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
@@ -11,8 +11,8 @@ Get your FHIR server running in seconds:
 
 ```bash
 # Clone and start
-git clone https://github.com/steveswinsburg/ember-core.git
-cd ember-core
+git clone https://github.com/steveswinsburg/fhirstore.git
+cd fhirstore
 docker compose up -d
 
 # Check status
