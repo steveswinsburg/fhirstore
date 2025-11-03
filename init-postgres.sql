@@ -1,7 +1,17 @@
 -- Postgre init script
 
--- Create user
-CREATE USER IF NOT EXISTS fhir_app_user WITH PASSWORD 'password';
+-- Create user (using DO block to handle "user already exists" error)
+DO
+$do$
+BEGIN
+   IF NOT EXISTS (
+      SELECT FROM pg_catalog.pg_roles
+      WHERE  rolname = 'fhir_app_user') THEN
+
+      CREATE USER fhir_app_user WITH PASSWORD 'password';
+   END IF;
+END
+$do$;
 
 -- Create FHIR schema and assign ownership to the application user
 CREATE SCHEMA IF NOT EXISTS fhir_data AUTHORIZATION fhir_app_user;
