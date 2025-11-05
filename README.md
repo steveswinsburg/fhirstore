@@ -1,5 +1,5 @@
 # 🔥 FHIRStore - FHIR Server
-> A containerized HAPI FHIR server with PostgreSQL
+> A containerized HAPI FHIR server running on PostgreSQL
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 [![HAPI FHIR](https://img.shields.io/badge/HAPI%20FHIR-Latest-green?logo=fire)](https://hapifhir.io/)
