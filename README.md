@@ -136,6 +136,6 @@ docker compose up --scale fhir=3
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
 **Made with ❤️ for the FHIR community**
