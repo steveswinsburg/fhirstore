@@ -1,5 +1,5 @@
 # 🔥 FHIRStore - FHIR Server
-> A containerized HAPI FHIR server with PostgreSQL
+> A containerised HAPI FHIR server running on PostgreSQL
 
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 [![HAPI FHIR](https://img.shields.io/badge/HAPI%20FHIR-Latest-green?logo=fire)](https://hapifhir.io/)
@@ -11,7 +11,6 @@ Get your FHIR server running in seconds:
 
 ```bash
 # Clone and start
-git clone https://github.com/steveswinsburg/fhirstore.git
 cd fhirstore
 docker compose up -d
 
@@ -54,10 +53,7 @@ docker compose ps
 The user and schema are initialized on startup.
 
 ### FHIR Configuration
-Custom application settings in `hapi.application.yaml`:
-- PostgreSQL dialect optimized for HAPI
-- Hibernate search disabled for performance
-- Connection pooling ready
+Custom application settings are in `hapi.application.yaml`.
 
 ## 🔧 Commands
 
@@ -130,21 +126,6 @@ curl -X PUT http://localhost:8080/fhir/Patient/abc1234 \
 curl "http://localhost:8080/fhir/Patient?family=Doe"
 ```
 
-## 🚦 Health Checks
-
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /fhir/metadata` | Server capability statement |
-| `GET /fhir/Patient` | Basic FHIR functionality |
-| Database connection | Automatic via HAPI startup |
-
-## 🔒 Security Notes
-
-- Default passwords are for development only
-- Change credentials in production
-- Database is not exposed externally
-- Consider adding authentication for production use
-
 ## 📈 Scaling
 
 ### Horizontal Scaling
@@ -153,16 +134,8 @@ curl "http://localhost:8080/fhir/Patient?family=Doe"
 docker compose up --scale fhir=3
 ```
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
 **Made with ❤️ for the FHIR community**
