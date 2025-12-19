@@ -18,29 +18,31 @@ docker compose up -d
 docker compose ps
 ```
 
-**🎉 That's it!** Your FHIR server is now running at `http://localhost:8080`
+**🎉 That's it!** Your FHIR server is now running at `http://localhost`
 
 ## 📋 What's Inside
 
 | Service | Description | Port | Health Check |
 |---------|-------------|------|--------------|
-| **HAPI FHIR** | FHIR R4 Server | `8080` | `http://localhost:8080/fhir/metadata` |
+| **NGINX** | Reverse Proxy | `80` | `http://localhost` |
+| **HAPI FHIR** | FHIR R4 Server | `8080` | Internal only |
 | **PostgreSQL** | Database Backend | `5432` | Internal only |
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐
-│   HAPI FHIR     │───▶│   PostgreSQL    │
-│   Server        │    │   Database      │
-│   Port: 8080    │    │   Port: 5432    │
-└─────────────────┘    └─────────────────┘
-         │                       │
-         │              ┌─────────────────┐
-         └─────────────▶│  Custom Schema  │
-                        │   fhir_data     │
-                        │   fhir_app_user │
-                        └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│     NGINX       │───▶│   HAPI FHIR     │───▶│   PostgreSQL    │
+│  Reverse Proxy  │    │   Server        │    │   Database      │
+│   Port: 80      │    │   Port: 8080    │    │   Port: 5432    │
+│  (External)     │    │  (Internal)     │    │  (Internal)     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                       │
+                                │              ┌─────────────────┐
+                                └─────────────▶│  Custom Schema  │
+                                               │   fhir_data     │
+                                               │   fhir_app_user │
+                                               └─────────────────┘
 ```
 
 ## 🛠️ Configuration
@@ -95,12 +97,12 @@ docker compose up -d
 
 ### Get Server Metadata
 ```bash
-curl http://localhost:8080/fhir/metadata
+curl http://localhost/fhir/metadata
 ```
 
 ### Create a Patient
 ```bash
-curl -X POST http://localhost:8080/fhir/Patient \
+curl -X POST http://localhost/fhir/Patient \
   -H "Content-Type: application/fhir+json" \
   -d '{
     "resourceType": "Patient",
@@ -111,7 +113,7 @@ curl -X POST http://localhost:8080/fhir/Patient \
 
 ### Create a Patient (with ID)
 ```bash
-curl -X PUT http://localhost:8080/fhir/Patient/abc1234 \
+curl -X PUT http://localhost/fhir/Patient/abc1234 \
   -H "Content-Type: application/fhir+json" \
   -d '{
     "resourceType": "Patient",
@@ -123,7 +125,7 @@ curl -X PUT http://localhost:8080/fhir/Patient/abc1234 \
 
 ### Search Patients
 ```bash
-curl "http://localhost:8080/fhir/Patient?family=Doe"
+curl "http://localhost/fhir/Patient?family=Doe"
 ```
 
 ## 📈 Scaling
