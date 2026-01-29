@@ -15,8 +15,9 @@ hapi:
     server:
       path: /fhir
     jpa:
-      scheduling_disabled: true
-    # Enable custom interceptor loading
+      scheduling:
+        enabled: false
+    # Custom interceptor configuration
     custom-bean-packages: io.github.steveswinsburg.fhirstore
     custom-interceptor-classes: io.github.steveswinsburg.fhirstore.interceptors.WriteProtectionInterceptor
 
