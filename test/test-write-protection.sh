@@ -8,6 +8,8 @@
 
 
 BASE_URL="http://localhost:8080/fhir"
+#BASE_URL="http://localhost/fhir"
+#BASE_URL="https://fhir-xrp.digitalhealth.gov.au/fhir"
 ADMIN_USER="admin"
 ADMIN_PASS="admin123"
 
@@ -47,13 +49,25 @@ echo ""
 
 # Now create a test patient with auth (should work)
 echo "2. Creating a test patient with auth (CREATE - should work)..."
-RESULT2=$(curl -s -X POST \
+PATIENT_UUID="test-patient-$(uuidgen | tr '[:upper:]' '[:lower:]')"
+PATIENT_JSON_WITH_ID='{
+  "resourceType": "Patient",
+  "id": "'$PATIENT_UUID'",
+  "name": [{
+    "family": "Doe",
+    "given": ["John"]
+  }],
+  "gender": "male",
+  "birthDate": "1990-01-01"
+}'
+
+RESULT2=$(curl -s -X PUT \
   -H "Content-Type: application/fhir+json" \
   -H "Authorization: Basic $(echo -n $ADMIN_USER:$ADMIN_PASS | base64)" \
-  -d "$PATIENT_JSON" \
-  "$BASE_URL/Patient" \
+  -d "$PATIENT_JSON_WITH_ID" \
+  "$BASE_URL/Patient/$PATIENT_UUID" \
   -w "%{http_code}" \
-  -o /tmp/patient_response.json)
+  -o /dev/null)
 
 echo "HTTP Status: $RESULT2"
 TEST_NAMES+=("CREATE with auth")
@@ -61,13 +75,7 @@ ACTUAL_RESULTS+=("$RESULT2")
 EXPECTED_RESULTS+=("200/201")
 
 if [[ "$RESULT2" == "200" || "$RESULT2" == "201" ]]; then
-    LOCATION_HEADER=$(curl -s -X POST \
-      -H "Content-Type: application/fhir+json" \
-      -H "Authorization: Basic $(echo -n $ADMIN_USER:$ADMIN_PASS | base64)" \
-      -d "$PATIENT_JSON" \
-      "$BASE_URL/Patient" \
-      -D - -o /dev/null | grep -i "location:" | cut -d' ' -f2 | tr -d '\r')
-    PATIENT_ID=$(basename "$LOCATION_HEADER")
+    PATIENT_ID="$PATIENT_UUID"
     echo "   Patient ID: $PATIENT_ID"
 else
     echo "Failed to create patient with auth (Status: $RESULT2)"
