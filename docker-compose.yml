@@ -10,9 +10,12 @@ services:
     restart: unless-stopped
 
   fhir:
-    image: "hapiproject/hapi:latest"
-    volumes:
-      - ./hapi.application.yaml:/app/config/application.yaml:Z
+    build: .
+    environment:
+      - FHIR_ADMIN_USERNAME=${FHIR_ADMIN_USERNAME:-admin}
+      - FHIR_ADMIN_PASSWORD=${FHIR_ADMIN_PASSWORD:-admin123}
+    ports:
+      - "8080:8080"  # Expose FHIR server port for debugging
     depends_on:
       db:
         condition: service_healthy

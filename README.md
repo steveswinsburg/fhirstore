@@ -10,8 +10,10 @@
 Get your FHIR server running in seconds:
 
 ```bash
-# Clone and start
-cd fhirstore
+# Build customisations (if any)
+./build.sh
+
+# Start
 docker compose up -d
 
 # Check status
@@ -39,11 +41,52 @@ docker compose ps
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │                       │
                                 │              ┌─────────────────┐
-                                └─────────────▶│  Custom Schema  │
+                                └─────────────▶│   DB Schema     │
                                                │   fhir_data     │
                                                │   fhir_app_user │
                                                └─────────────────┘
 ```
+
+## 🔧 Customisations
+
+This project supports custom FHIR interceptors and configurations to extend the server functionality.
+
+### Structure
+```
+src/main/java/io/github/steveswinsburg/fhirstore/
+├── interceptors/               # FHIR interceptors
+└── ...                         # Other customisations
+```
+
+### Adding New Interceptors
+
+1. Create your interceptor class in `src/main/java/io/github/steveswinsburg/fhirstore/interceptors/`:
+
+```java
+@Component
+@Interceptor
+public class MyInterceptor {
+    @Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_HANDLED)
+    public void intercept(RequestDetails requestDetails) {
+        // Your logic here
+    }
+}
+```
+
+2. Build and restart:
+```bash
+./build.sh
+docker-compose restart fhir
+```
+
+The HAPI FHIR server automatically discovers interceptors via Spring's component scanning.
+
+### Build Process
+
+The `./build.sh` script:
+1. Compiles the Java customisations into a JAR (`target/fhirstore-customisations-1.0.0.jar`)
+2. Builds a custom Docker image extending the official HAPI FHIR image
+3. Copies the JAR and configuration into the container
 
 ## 🛠️ Configuration
 

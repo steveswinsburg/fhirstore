@@ -7,3 +7,28 @@ spring:
   jpa:
     properties:
       hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+
+# HAPI FHIR Configuration
+hapi:
+  fhir:
+    version: r4
+    server:
+      path: /fhir
+    jpa:
+      scheduling_disabled: true
+    # Enable custom interceptor loading
+    custom-bean-packages: io.github.steveswinsburg.fhirstore
+    custom-interceptor-classes: io.github.steveswinsburg.fhirstore.interceptors.WriteProtectionInterceptor
+
+# Custom write protection configuration
+fhirstore:
+  write-protection:
+    enabled: true
+    auth-username: ${FHIR_ADMIN_USERNAME:admin}
+    auth-password: ${FHIR_ADMIN_PASSWORD:admin123}
+
+# Logging configuration
+logging:
+  level:
+    io.github.steveswinsburg.fhirstore: INFO
+    ca.uhn.fhir: WARN
