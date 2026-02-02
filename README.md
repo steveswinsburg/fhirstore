@@ -100,6 +100,25 @@ The user and schema are initialized on startup.
 ### FHIR Configuration
 Custom application settings are in `hapi.application.yaml`.
 
+## ⚙️ Environment Variables
+
+The project uses a `.env` file to configure sensitive settings and provides them to docker-compose. Copy the provided `.env` file and modify as needed:
+
+### Admin Credentials
+```bash
+FHIR_ADMIN_USERNAME=admin
+FHIR_ADMIN_PASSWORD=admin123
+```
+
+These credentials are required to be provided via Basic Auth for all write requests.
+
+### Database Settings
+```bash
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=admin
+POSTGRES_DB=hapi
+```
+
 ## 🔧 Commands
 
 ### Development
