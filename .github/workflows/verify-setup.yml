@@ -70,8 +70,34 @@ jobs:
       run: |
         echo "Testing FHIR metadata endpoint..."
         
+        # Wait for FHIR server to be fully ready (SSL takes time to initialize)
+        echo "Waiting for FHIR server SSL to be ready..."
+        timeout=120
+        start_time=$(date +%s)
+        
+        while true; do
+          current_time=$(date +%s)
+          elapsed=$((current_time - start_time))
+          
+          if [ $elapsed -gt $timeout ]; then
+            echo "❌ FHIR SSL server failed to become ready within $timeout seconds"
+            echo "FHIR container logs:"
+            docker compose logs fhir --tail=20
+            exit 1
+          fi
+          
+          # Test if SSL port is accessible
+          if curl -k -s --connect-timeout 5 https://localhost:443/fhir/metadata > /dev/null 2>&1; then
+            echo "✅ FHIR SSL server is accessible after ${elapsed}s"
+            break
+          fi
+          
+          echo "FHIR SSL server not ready yet (${elapsed}s elapsed)..."
+          sleep 5
+        done
+        
         # Test HTTPS endpoint (with self-signed cert)
-        echo "Testing HTTPS endpoint..."
+        echo "Testing HTTPS endpoint response..."
         response=$(curl -k -s https://localhost:443/fhir/metadata)
         
         if echo "$response" | grep -q "CapabilityStatement"; then
@@ -80,6 +106,8 @@ jobs:
           echo "❌ FHIR HTTPS server response doesn't contain expected CapabilityStatement"
           echo "Response received:"
           echo "$response"
+          echo "FHIR container logs:"
+          docker compose logs fhir --tail=10
           exit 1
         fi
         
