@@ -1,7 +1,10 @@
 FROM hapiproject/hapi:latest
 
-# Copy our custom interceptors jar to the extra-classes directory (this is where HAPI looks for custom classes)
+# Copy our custom interceptors jar to the extra-classes directory
 COPY target/fhirstore-customisations-*.jar /app/extra-classes/
 
 # Copy our custom configuration
-COPY hapi.application.yaml /app/config/application.yaml
+COPY conf/hapi.application.yaml /app/config/application.yaml
+
+# Copy keystore for SSL (configured via environment variables)
+COPY conf/keystore.jks /app/keystore.jks
