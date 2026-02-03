@@ -243,7 +243,7 @@ curl -k -X POST https://localhost/fhir/Patient \
 
 ### Create a Patient (with ID)
 ```bash
-curl -X PUT https://localhost/fhir/Patient/abc1234 \
+curl -k -X PUT https://localhost/fhir/Patient/abc1234 \
   -H "Content-Type: application/fhir+json" \
   -d '{
     "resourceType": "Patient",
