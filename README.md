@@ -22,21 +22,13 @@ docker compose ps
 
 **🎉 That's it!** Your FHIR server is now running at `http://localhost`
 
-## 📋 What's Inside
-
-| Service | Description | Port | Health Check |
-|---------|-------------|------|--------------|
-| **HAPI FHIR** | FHIR R4 Server | `80` (HTTP), `443` (HTTPS) | `http://localhost/fhir/metadata` |
-| **PostgreSQL** | Database Backend | `5432` | Internal only |
-
-*HTTPS available with included self-signed certificate*
-
 ## 🏗️ Architecture
 
 ```mermaid
 graph LR
-    A[HAPI FHIR Server<br/>Port: 80, 443<br/>External] --> B[PostgreSQL Database<br/>Port: 5432<br/>Internal]
+    A[HAPI FHIR Server<br/>Port: 443 HTTPS<br/>External] --> B[PostgreSQL Database<br/>Port: 5432<br/>Internal]
     B --> C[DB Schema<br/>fhir_data<br/>fhir_app_user]
+    D[Port 80 HTTP<br/>↳ 301 → HTTPS] -.-> A
 ```
 
 ## 🔧 Customisations
@@ -112,13 +104,66 @@ POSTGRES_PASSWORD=admin
 POSTGRES_DB=hapi
 ```
 
-### SSL Settings (Optional)
-```bash
-# Keystore configuration (only needed if replacing the included self-signed certificate)
-KEYSTORE_PASSWORD=changeit
-KEYSTORE_TYPE=PKCS12
-SSL_KEY_ALIAS=localhost
+## 📜 FHIR Implementation Guide Auto-Import
+
+FHIRStore has built-in support for automatically loading Implementation Guides.
+
+### Quick Setup
+
+1. **Edit `conf/hapi.application.yaml`**:
+   ```yaml
+   hapi:
+     fhir:
+       implementationguides:
+         au-base:
+           name: hl7.fhir.au.base
+           version: 6.0.0
+           installMode: STORE_AND_INSTALL
+   ```
+
+2. **Restart FHIR server**:
+   ```bash
+   docker compose restart fhir
+   ```
+
+### Configuration Options
+
+| Option | Description | Values |
+|--------|-------------|--------|
+| `name` | Package ID from packages.fhir.org | `hl7.fhir.au.base` |
+| `version` | Specific version | `4.2.0` |
+| `installMode` | How to handle the IG | `STORE_AND_INSTALL`, `STORE_ONLY`, `INSTALL_ONLY` |
+| `packageUrl` | Direct package URL (optional) | `https://example.org/package.tgz` |
+| `reloadExisting` | Reload if already installed | `true`, `false` |
+
+### Examples
+
+```yaml
+implementationguides:
+  # From NPM registry
+  au-base:
+    name: hl7.fhir.au.base
+    version: 6.0.0
+    installMode: STORE_AND_INSTALL
+  
+  # From custom URL
+  my-custom-ig:
+    name: my.custom.ig
+    version: 1.0.0
+    packageUrl: https://example.org/package.tgz
+    installMode: STORE_AND_INSTALL
+    reloadExisting: true
+  
+  # From local file
+  my-local-ig:
+    name: my.local.ig
+    version: 0.0.1
+    packageUrl: file:///app/igs/package.tgz
+    installMode: STORE_AND_INSTALL
+    reloadExisting: true
 ```
+
+*See [IG_IMPORT.md](IG_IMPORT.md) for more examples*
 
 ## 🔐 SSL Configuration
 
@@ -130,7 +175,7 @@ The project includes SSL/HTTPS support with a **self-signed certificate included
 docker compose up -d
 
 # Access via HTTP or HTTPS
-curl http://localhost/fhir/metadata
+curl -kL http://localhost/fhir/metadata
 curl -k https://localhost/fhir/metadata  # -k ignores self-signed cert warnings
 ```
 

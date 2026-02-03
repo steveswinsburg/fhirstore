@@ -20,6 +20,14 @@ hapi:
     # Custom interceptor configuration
     custom-bean-packages: io.github.steveswinsburg.fhirstore
     custom-interceptor-classes: io.github.steveswinsburg.fhirstore.interceptors.WriteProtectionInterceptor
+    
+    # Implementation Guide auto-loading
+    # Uncomment and configure IGs as needed:
+    # implementationguides:
+    #   us-core:
+    #     name: hl7.fhir.us.core
+    #     version: 6.0.0
+    #     installMode: STORE_AND_INSTALL
 
 # Custom write protection configuration
 fhirstore:

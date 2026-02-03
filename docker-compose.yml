@@ -24,6 +24,8 @@ services:
       - SERVER_SSL_KEY_ALIAS=${SSL_KEY_ALIAS:-localhost}
     ports:
       - "443:8443"  # HTTPS port only
+    volumes:
+      - ./igs:/app/igs:Z
     depends_on:
       db:
         condition: service_healthy
