@@ -22,15 +22,6 @@ docker compose ps
 
 **🎉 That's it!** Your FHIR server is now running at `http://localhost`
 
-## 📋 What's Inside
-
-| Service | Description | Port | Health Check |
-|---------|-------------|------|--------------|
-| **HAPI FHIR** | FHIR R4 Server | `80` (HTTP), `443` (HTTPS) | `http://localhost/fhir/metadata` |
-| **PostgreSQL** | Database Backend | `5432` | Internal only |
-
-*HTTPS available with included self-signed certificate*
-
 ## 🏗️ Architecture
 
 ```mermaid
@@ -173,7 +164,7 @@ implementationguides:
 
 *See [IG_IMPORT.md](IG_IMPORT.md) for more examples*
 
-## �🔐 SSL Configuration
+## 🔐 SSL Configuration
 
 The project includes SSL/HTTPS support with a **self-signed certificate included** for immediate use.
 
