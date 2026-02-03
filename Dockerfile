@@ -4,4 +4,4 @@ FROM hapiproject/hapi:latest
 COPY target/fhirstore-customisations-*.jar /app/extra-classes/
 
 # Copy our custom configuration
-COPY hapi.application.yaml /app/config/application.yaml
+COPY conf/hapi.application.yaml /app/config/application.yaml

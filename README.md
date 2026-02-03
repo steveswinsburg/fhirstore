@@ -119,6 +119,58 @@ POSTGRES_PASSWORD=admin
 POSTGRES_DB=hapi
 ```
 
+## 🔐 SSL Configuration
+
+The project includes automated SSL certificate generation using Let's Encrypt for production deployments.
+
+### Quick SSL Setup
+
+1. **Edit SSL configuration**:
+   ```bash
+   # Edit conf/ssl.conf with your settings
+   DOMAIN=fhir.yourdomain.com
+   EMAIL=admin@yourdomain.com
+   STAGING=false
+   AUTO_REDIRECT=true
+   AUTO_RELOAD=true
+   ```
+
+2. **Run SSL setup**:
+   ```bash
+   ./ssl-setup.sh
+   ```
+
+### SSL Configuration Options
+
+| Setting | Description | Example |
+|---------|-------------|---------|
+| `DOMAIN` | Your domain name (required) | `fhir.example.com` |
+| `EMAIL` | Let's Encrypt account email | `admin@example.com` |
+| `STAGING` | Use staging certificates for testing | `false` |
+| `AUTO_REDIRECT` | Redirect HTTP to HTTPS | `true` |
+| `AUTO_RELOAD` | Auto-reload nginx after setup | `true` |
+
+### Prerequisites
+
+- Domain must point to your server (DNS A record)
+- Ports 80 and 443 must be accessible from internet
+- Services should be running *before* SSL setup
+
+### Manual SSL Commands
+
+```bash
+# Test with staging certificates first
+echo "STAGING=true" >> conf/ssl.conf
+./ssl-setup.sh
+
+# Switch to production certificates  
+echo "STAGING=false" >> conf/ssl.conf
+./ssl-setup.sh
+
+# Check certificate status
+docker compose exec certbot certbot certificates
+```
+
 ## 🔧 Commands
 
 ### Development
