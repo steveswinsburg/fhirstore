@@ -29,6 +29,8 @@ services:
       - FHIR_ADMIN_PASSWORD=${FHIR_ADMIN_PASSWORD:-admin123}
     ports:
       - "8080:8080"  # Expose FHIR server port for debugging
+    volumes:
+      - ./igs:/app/igs:Z
     depends_on:
       db:
         condition: service_healthy

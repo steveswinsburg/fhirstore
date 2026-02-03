@@ -119,7 +119,68 @@ POSTGRES_PASSWORD=admin
 POSTGRES_DB=hapi
 ```
 
-## 🔐 SSL Configuration
+## 📜 FHIR Implementation Guide Auto-Import
+
+FHIRStore has built-in support for automatically loading Implementation Guides.
+
+### Quick Setup
+
+1. **Edit `conf/hapi.application.yaml`**:
+   ```yaml
+   hapi:
+     fhir:
+       implementationguides:
+         au-base:
+           name: hl7.fhir.au.base
+           version: 6.0.0
+           installMode: STORE_AND_INSTALL
+   ```
+
+2. **Restart FHIR server**:
+   ```bash
+   docker compose restart fhir
+   ```
+
+### Configuration Options
+
+| Option | Description | Values |
+|--------|-------------|--------|
+| `name` | Package ID from packages.fhir.org | `hl7.fhir.au.base` |
+| `version` | Specific version | `4.2.0` |
+| `installMode` | How to handle the IG | `STORE_AND_INSTALL`, `STORE_ONLY`, `INSTALL_ONLY` |
+| `packageUrl` | Direct package URL (optional) | `https://example.org/package.tgz` |
+| `reloadExisting` | Reload if already installed | `true`, `false` |
+
+### Examples
+
+```yaml
+implementationguides:
+  # From NPM registry
+  au-base:
+    name: hl7.fhir.au.base
+    version: 6.0.0
+    installMode: STORE_AND_INSTALL
+  
+  # From custom URL
+  my-ig:
+    name: my.custom.ig
+    version: 1.0.0
+    packageUrl: https://example.org/package.tgz
+    installMode: STORE_AND_INSTALL
+    reloadExisting: true
+  
+  # From local file
+  my-ig:
+    name: my.local.ig
+    version: 0.0.1
+    packageUrl: file:///app/igs/package.tgz
+    installMode: STORE_AND_INSTALL
+    reloadExisting: true
+```
+
+*See [IG_IMPORT.md](IG_IMPORT.md) for more examples*
+
+## �🔐 SSL Configuration
 
 The project includes automated SSL certificate generation using Let's Encrypt for production deployments.
 
