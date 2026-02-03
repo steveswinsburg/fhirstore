@@ -26,8 +26,9 @@ docker compose ps
 
 ```mermaid
 graph LR
-    A[HAPI FHIR Server<br/>Port: 80, 443<br/>External] --> B[PostgreSQL Database<br/>Port: 5432<br/>Internal]
+    A[HAPI FHIR Server<br/>Port: 443 HTTPS<br/>External] --> B[PostgreSQL Database<br/>Port: 5432<br/>Internal]
     B --> C[DB Schema<br/>fhir_data<br/>fhir_app_user]
+    D[Port 80 HTTP<br/>↳ 301 → HTTPS] -.-> A
 ```
 
 ## 🔧 Customisations
@@ -146,7 +147,7 @@ implementationguides:
     installMode: STORE_AND_INSTALL
   
   # From custom URL
-  my-ig:
+  my-custom-ig:
     name: my.custom.ig
     version: 1.0.0
     packageUrl: https://example.org/package.tgz
@@ -154,7 +155,7 @@ implementationguides:
     reloadExisting: true
   
   # From local file
-  my-ig:
+  my-local-ig:
     name: my.local.ig
     version: 0.0.1
     packageUrl: file:///app/igs/package.tgz
@@ -174,7 +175,7 @@ The project includes SSL/HTTPS support with a **self-signed certificate included
 docker compose up -d
 
 # Access via HTTP or HTTPS
-curl http://localhost/fhir/metadata
+curl -kL http://localhost/fhir/metadata
 curl -k https://localhost/fhir/metadata  # -k ignores self-signed cert warnings
 ```
 

@@ -1,17 +1,14 @@
 # FHIR Implementation Guide Configuration
 
-This directory contains local FHIR IG package files (.tgz) and configuration examples.
-
 ## Local Package Files
 
-Place your local FHIR IG package files (.tgz) in this directory:
-- `my-custom-ig-1.0.0.tgz` - Custom implementation guide
+Place your local FHIR IG package files (.tgz) in the `./igs/` directory.
 
 The `/app/igs/` path maps to this directory when running in Docker.
 
-## Configuration Examples
+## Configuration 
 
-Add this section to `conf/hapi.application.yaml` under the `hapi:` section:
+For each IG, add a section to `conf/hapi.application.yaml` under the `hapi:` section:
 
 ```yaml
 implementationguides:
