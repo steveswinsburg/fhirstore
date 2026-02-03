@@ -6,7 +6,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./conf/redirect.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./conf/redirect.conf:/etc/nginx/conf.d/default.conf:ro,Z
     restart: unless-stopped
 
   fhir:
