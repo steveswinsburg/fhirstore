@@ -18,6 +18,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Build customizations
+      run: ./build.sh
+      
     - name: Start services
       run: docker compose up -d
       
@@ -38,14 +47,19 @@ jobs:
             exit 1
           fi
           
-          # Check if both services are healthy
-          db_health=$(docker compose ps db --format "table {{.Status}}" | grep -v STATUS | grep -o "healthy" || echo "unhealthy")
-          fhir_health=$(docker compose ps fhir --format "table {{.Status}}" | grep -v STATUS | grep -o "healthy" || echo "unhealthy")
+          # Check if all services are running
+          db_status=$(docker compose ps db --format "table {{.Status}}" | grep -v STATUS | grep -o "Up" || echo "Down")
+          fhir_status=$(docker compose ps fhir --format "table {{.Status}}" | grep -v STATUS | grep -o "Up" || echo "Down")
+          redirect_status=$(docker compose ps http-redirect --format "table {{.Status}}" | grep -v STATUS | grep -o "Up" || echo "Down")
           
-          echo "Database: $db_health, FHIR: $fhir_health (${elapsed}s elapsed)"
+          # For database, check if it's healthy
+          db_health=$(docker compose ps db --format "table {{.Status}}" | grep -v STATUS | grep -o "healthy" || echo "starting")
           
-          if [ "$db_health" = "healthy" ] && [ "$fhir_health" = "healthy" ]; then
-            echo "✅ All services are healthy!"
+          echo "Database: $db_health, FHIR: $fhir_status, HTTP-Redirect: $redirect_status (${elapsed}s elapsed)"
+          
+          # Services are ready when db is healthy and both fhir and redirect are up
+          if [ "$db_health" = "healthy" ] && [ "$fhir_status" = "Up" ] && [ "$redirect_status" = "Up" ]; then
+            echo "✅ All services are ready!"
             break
           fi
           
@@ -55,14 +69,28 @@ jobs:
     - name: Verify FHIR metadata endpoint
       run: |
         echo "Testing FHIR metadata endpoint..."
-        response=$(curl -s http://localhost:8080/fhir/metadata)
+        
+        # Test HTTPS endpoint (with self-signed cert)
+        echo "Testing HTTPS endpoint..."
+        response=$(curl -k -s https://localhost:443/fhir/metadata)
         
         if echo "$response" | grep -q "CapabilityStatement"; then
-          echo "✅ FHIR server is responding correctly with CapabilityStatement"
+          echo "✅ FHIR HTTPS server is responding correctly with CapabilityStatement"
         else
-          echo "❌ FHIR server response doesn't contain expected CapabilityStatement"
+          echo "❌ FHIR HTTPS server response doesn't contain expected CapabilityStatement"
           echo "Response received:"
           echo "$response"
+          exit 1
+        fi
+        
+        # Test HTTP redirect (should get 301)
+        echo "Testing HTTP redirect..."
+        redirect_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/fhir/metadata)
+        
+        if [ "$redirect_code" = "301" ]; then
+          echo "✅ HTTP redirect is working correctly (301 -> HTTPS)"
+        else
+          echo "❌ HTTP redirect failed, got code: $redirect_code"
           exit 1
         fi
         
