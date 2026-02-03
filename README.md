@@ -26,25 +26,17 @@ docker compose ps
 
 | Service | Description | Port | Health Check |
 |---------|-------------|------|--------------|
-| **NGINX** | Reverse Proxy | `80` | `http://localhost` |
-| **HAPI FHIR** | FHIR R4 Server | `8080` | Internal only |
+| **HAPI FHIR** | FHIR R4 Server | `80` (HTTP), `443` (HTTPS) | `http://localhost/fhir/metadata` |
 | **PostgreSQL** | Database Backend | `5432` | Internal only |
+
+*HTTPS available with included self-signed certificate*
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│     NGINX       │───▶│   HAPI FHIR     │───▶│   PostgreSQL    │
-│  Reverse Proxy  │    │   Server        │    │   Database      │
-│   Port: 80      │    │   Port: 8080    │    │   Port: 5432    │
-│  (External)     │    │  (Internal)     │    │  (Internal)     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │                       │
-                                │              ┌─────────────────┐
-                                └─────────────▶│   DB Schema     │
-                                               │   fhir_data     │
-                                               │   fhir_app_user │
-                                               └─────────────────┘
+```mermaid
+graph LR
+    A[HAPI FHIR Server<br/>Port: 80, 443<br/>External] --> B[PostgreSQL Database<br/>Port: 5432<br/>Internal]
+    B --> C[DB Schema<br/>fhir_data<br/>fhir_app_user]
 ```
 
 ## 🔧 Customisations
@@ -76,7 +68,7 @@ public class MyInterceptor {
 2. Build and restart:
 ```bash
 ./build.sh
-docker-compose restart fhir
+docker compose up -d fhir
 ```
 
 The HAPI FHIR server automatically discovers interceptors via Spring's component scanning.
@@ -87,6 +79,7 @@ The `./build.sh` script:
 1. Compiles the Java customisations into a JAR (`target/fhirstore-customisations-1.0.0.jar`)
 2. Builds a custom Docker image extending the official HAPI FHIR image
 3. Copies the JAR and configuration into the container
+4. Copies the keystore into the container (for SSL)     
 
 ## 🛠️ Configuration
 
@@ -119,57 +112,76 @@ POSTGRES_PASSWORD=admin
 POSTGRES_DB=hapi
 ```
 
+### SSL Settings (Optional)
+```bash
+# Keystore configuration (only needed if replacing the included self-signed certificate)
+KEYSTORE_PASSWORD=changeit
+KEYSTORE_TYPE=PKCS12
+SSL_KEY_ALIAS=localhost
+```
+
 ## 🔐 SSL Configuration
 
-The project includes automated SSL certificate generation using Let's Encrypt for production deployments.
+The project includes SSL/HTTPS support with a **self-signed certificate included** for immediate use.
 
-### Quick SSL Setup
-
-1. **Edit SSL configuration**:
-   ```bash
-   # Edit conf/ssl.conf with your settings
-   DOMAIN=fhir.yourdomain.com
-   EMAIL=admin@yourdomain.com
-   STAGING=false
-   AUTO_REDIRECT=true
-   AUTO_RELOAD=true
-   ```
-
-2. **Run SSL setup**:
-   ```bash
-   ./ssl-setup.sh
-   ```
-
-### SSL Configuration Options
-
-| Setting | Description | Example |
-|---------|-------------|---------|
-| `DOMAIN` | Your domain name (required) | `fhir.example.com` |
-| `EMAIL` | Let's Encrypt account email | `admin@example.com` |
-| `STAGING` | Use staging certificates for testing | `false` |
-| `AUTO_REDIRECT` | Redirect HTTP to HTTPS | `true` |
-| `AUTO_RELOAD` | Auto-reload nginx after setup | `true` |
-
-### Prerequisites
-
-- Domain must point to your server (DNS A record)
-- Ports 80 and 443 must be accessible from internet
-- Services should be running *before* SSL setup
-
-### Manual SSL Commands
-
+### Quick Start (No SSL Setup Required)
 ```bash
-# Test with staging certificates first
-echo "STAGING=true" >> conf/ssl.conf
-./ssl-setup.sh
+# Start with included self-signed certificate
+docker compose up -d
 
-# Switch to production certificates  
-echo "STAGING=false" >> conf/ssl.conf
-./ssl-setup.sh
-
-# Check certificate status
-docker compose exec certbot certbot certificates
+# Access via HTTP or HTTPS
+curl http://localhost/fhir/metadata
+curl -k https://localhost/fhir/metadata  # -k ignores self-signed cert warnings
 ```
+
+### Using Your Own Certificate
+
+To replace the self-signed certificate with your own:
+
+1. **Replace the keystore file**:
+   ```bash
+   cp your-certificate.jks conf/keystore.jks
+   ```
+
+2. **Update environment variables in `.env`**:
+   ```bash
+   echo "KEYSTORE_PASSWORD=your-keystore-password" >> .env
+   echo "SSL_KEY_ALIAS=your-domain.example.com" >> .env
+   ```
+
+3. **Rebuild and restart the service**:
+   ```bash
+   ./build.sh
+   docker compose up -d fhir
+   ```
+
+### SSL Configuration (Environment Variables)
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `KEYSTORE_PASSWORD` | Keystore password | `changeit` | `your-password` |
+| `KEYSTORE_TYPE` | Keystore format | `PKCS12` | `PKCS12`, `JKS` |
+| `SSL_KEY_ALIAS` | Certificate alias | `localhost` | `your-domain.com` |
+
+### Creating a Keystore
+
+#### From existing certificate files:
+```bash
+# Convert PEM certificate to PKCS12 keystore (recommended)
+openssl pkcs12 -export -in certificate.crt -inkey private.key -out conf/keystore.jks -name "your-domain.com"
+```
+
+#### Self-signed certificate for testing:
+```bash
+# Generate self-signed certificate in PKCS12 format (recommended)
+keytool -genkeypair -alias localhost -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore conf/keystore.jks -validity 365 -dname "CN=localhost, OU=Development, O=Your Organization, L=Your City, ST=Your State, C=AU"
+```
+
+### Accessing the Server
+
+The FHIR server is available at:
+- HTTP: `http://localhost/fhir/metadata` (redirects to https)
+- HTTPS: `https://localhost/fhir/metadata`
 
 ## 🔧 Commands
 
@@ -202,6 +214,10 @@ docker compose ps
 # Restart specific service
 docker compose restart fhir
 
+# Rebuild container (for configuration/keystore changes)
+docker compose build fhir --no-cache
+docker compose up -d fhir
+
 # Fresh start (removes data)
 docker compose down -v
 docker compose up -d
@@ -211,12 +227,12 @@ docker compose up -d
 
 ### Get Server Metadata
 ```bash
-curl http://localhost/fhir/metadata
+curl -k https://localhost/fhir/metadata
 ```
 
 ### Create a Patient
 ```bash
-curl -X POST http://localhost/fhir/Patient \
+curl -k -X POST https://localhost/fhir/Patient \
   -H "Content-Type: application/fhir+json" \
   -d '{
     "resourceType": "Patient",
@@ -227,7 +243,7 @@ curl -X POST http://localhost/fhir/Patient \
 
 ### Create a Patient (with ID)
 ```bash
-curl -X PUT http://localhost/fhir/Patient/abc1234 \
+curl -X PUT https://localhost/fhir/Patient/abc1234 \
   -H "Content-Type: application/fhir+json" \
   -d '{
     "resourceType": "Patient",
@@ -239,7 +255,7 @@ curl -X PUT http://localhost/fhir/Patient/abc1234 \
 
 ### Search Patients
 ```bash
-curl "http://localhost/fhir/Patient?family=Doe"
+curl "https://localhost/fhir/Patient?family=Doe"
 ```
 
 ## 📈 Scaling
